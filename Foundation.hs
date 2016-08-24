@@ -3,6 +3,9 @@ module Foundation where
 import Import.NoFoundation
 import Yesod.Core.Types            (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
+import Data.Map (Map)
+
+import Assets.Store (Asset, AssetId)
 
 -- | The foundation datatype for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -12,6 +15,7 @@ data App = App
     { appSettings    :: AppSettings
     , appHttpManager :: Manager
     , appLogger      :: Logger
+    , appAssets      :: TVar (Map AssetId Asset)
     }
 
 -- This is where we define all of the routes in our application. For a full
@@ -64,6 +68,9 @@ instance Yesod App where
             || level == LevelError
 
     makeLogger = return . appLogger
+
+    maximumContentLength _ (Just FileR) = Just $ 10 * 1024 * 1024 -- 10 mb
+    maximumContentLength _ _            = Just $ 2 * 1024 * 1024 -- 2 megabytes
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.

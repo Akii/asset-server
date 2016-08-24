@@ -26,6 +26,7 @@ import Network.Wai.Middleware.RequestLogger (Destination (Logger),
                                              mkRequestLogger, outputFormat)
 import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
                                              toLogStr)
+import qualified Data.Map as M
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -47,7 +48,7 @@ makeFoundation appSettings = do
     appHttpManager <- newManager
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
 
-
+    appAssets <- atomically $ newTVar M.empty
 
     -- Return the foundation
     return App {..}

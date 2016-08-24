@@ -2,30 +2,29 @@
 
 module Assets.Store where
 
-import Import
-import Data.Conduit.Binary (sinkLbs)
+import           Import.NoFoundation
+import           Data.UUID
+import           Data.UUID.V4
+import           Data.Conduit.Binary  (sinkLbs)
+import           Numeric              (showHex)
+import           System.Directory     (createDirectoryIfMissing)
 import qualified Data.ByteString.Lazy as LB
+import qualified Crypto.Hash.SHA1     as SHA1
+import qualified Crypto.Hash.MD5      as MD5
 
-import Data.UUID
-import Data.UUID.V4
-import System.Directory (createDirectoryIfMissing)
-import qualified Crypto.Hash.SHA1 as SHA1
-import qualified Crypto.Hash.MD5 as MD5
-
-newtype AssetId = AssetId UUID deriving (Generic, Show, Eq)
+newtype AssetId = AssetId UUID deriving (Generic, Show, Ord, Eq)
 
 newtype AssetFolder = AssetFolder { getFilePath :: FilePath }
 
-type SHA1 = Text
-type MD5 = Text
-type ImportError = Text
+type SHA1 = String
+type MD5 = String
 
 data Asset = Asset {
              assetId  :: AssetId
            , putOn    :: UTCTime
            , sha1     :: SHA1
            , md5      :: MD5
---           , name     :: Text
+           , name     :: Text
            , size     :: Int64
            } deriving (Generic, Show)
 
@@ -41,16 +40,18 @@ importAsset f fp = do
   bytes   <- runResourceT $ fileSource f $$ sinkLbs
 
   let
-    folder = assetFolder fp assetId
-    fileName = assetFileName folder assetId
+    af   = assetFolder fp assetId
+    afn  = assetFileName af assetId
 
-    sha1 = decodeUtf8 $ SHA1.hashlazy bytes
-    md5  = decodeUtf8 $ MD5.hashlazy bytes
---    name = fileName f
+    sha1 = concatMap (flip showHex "") $ SHA1.hashlazy bytes
+    md5  = concatMap (flip showHex "") $ MD5.hashlazy bytes
+    name = fileName f
     size = LB.length bytes
 
-  return $ Asset{..}
+  _ <- createAssetFolder af
+  _ <- fileMove f afn
 
+  return $ Asset{..}
 
 assetFileName :: AssetFolder -> AssetId -> FilePath
 assetFileName af (AssetId aId) = (getFilePath af) </> (toString aId)
@@ -62,7 +63,7 @@ assetFolder fp aId =
   where
     splitAssetIdIntoSubFolders (AssetId u) = case (toString u) of
       (a:b:c:d:_)  -> a : '/' : b : '/' : c : '/' : d : []
-      _             -> error "this will never happen"
+      _            -> error "this will never happen"
 
 createAssetFolder :: AssetFolder -> IO ()
 createAssetFolder af = createDirectoryIfMissing True $ getFilePath af

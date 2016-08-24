@@ -20,4 +20,4 @@ ip-from-header: "_env:IP_FROM_HEADER:false"
 # mutable-static: false
 # skip-combining: false
 
-asset-location: "_env:ASSET_LOCATION:assets"
+asset-location: "_env:ASSET_LOCATION:asset-store"

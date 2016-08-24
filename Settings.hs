@@ -45,7 +45,7 @@ data AppSettings = AppSettings
     -- ^ Assume that files in the static dir may change after compilation
     , appSkipCombining          :: Bool
     -- ^ Perform no stylesheet/script combining
-    , assetLocation             :: String
+    , appAssetLocation          :: String
     -- ^ Root location directory for storing assets
     }
 
@@ -68,7 +68,7 @@ instance FromJSON AppSettings where
         appReloadTemplates        <- o .:? "reload-templates" .!= defaultDev
         appMutableStatic          <- o .:? "mutable-static"   .!= defaultDev
         appSkipCombining          <- o .:? "skip-combining"   .!= defaultDev
-        assetLocation             <- o .:  "asset-location"
+        appAssetLocation          <- o .:  "asset-location"
 
         return AppSettings {..}
 

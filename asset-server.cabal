@@ -19,6 +19,7 @@ library
                      Import.NoFoundation
                      Settings
                      Handler.File
+                     Assets.Store
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -81,6 +82,7 @@ library
                  , mtl
                  , cryptohash
                  , conduit-extra
+                 , base16-bytestring
 
 executable         asset-server
     if flag(library-only)
